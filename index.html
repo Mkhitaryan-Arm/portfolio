@@ -1,214 +1,388 @@
 <!DOCTYPE html>
 <html lang="hy">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Architect | Ari Tun & MERN Expert</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700;900&display=swap" rel="stylesheet">
-    
-    <style>
-        body { 
-            font-family: 'Space Grotesk', sans-serif; 
-            background-color: #000; color: #fff; 
-            scroll-behavior: smooth; cursor: none; 
-            overflow-x: hidden;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ա. Մխիթարյան — Web Architect / MERN Developer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600&family=Noto+Sans+Armenian:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0A0F14;
+    --paper:#F2ECE0;
+    --blue-deep:#0D2136;
+    --blue-panel:#132A42;
+    --line:#2C4A64;
+    --line-soft:rgba(120,160,190,0.18);
+    --copper:#C9863F;
+    --copper-soft:rgba(201,134,63,0.15);
+    --muted:#7C93A6;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--ink);
+    color:var(--paper);
+    font-family:'Inter','Noto Sans Armenian',sans-serif;
+    font-weight:300;
+    overflow-x:hidden;
+    position:relative;
+  }
+  .serif{ font-family:'Fraunces','Noto Sans Armenian',serif; }
+  .mono{ font-family:'IBM Plex Mono',monospace; letter-spacing:0.02em; }
 
-        /* Custom Cursor */
-        #cursor-dot, #cursor-outline { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999; }
-        #cursor-dot { width: 8px; height: 8px; background: #06b6d4; border-radius: 50%; }
-        #cursor-outline { 
-            width: 40px; height: 40px; border: 1px solid #06b6d4; 
-            border-radius: 50%; transition: transform 0.1s ease-out; 
-        }
+  /* blueprint grid backdrop */
+  .grid-bg{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image:
+      linear-gradient(var(--line-soft) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+    background-size:64px 64px;
+    opacity:0.5;
+  }
+  .grid-bg::after{
+    content:'';
+    position:absolute; inset:0;
+    background:radial-gradient(circle at 50% 20%, transparent 0%, var(--ink) 78%);
+  }
 
-        /* Bento Card Styles */
-        .bento-card {
-            background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(10px); border-radius: 30px; transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-            position: relative; overflow: hidden;
-        }
-        .bento-card:hover { border-color: #06b6d4; background: rgba(6, 182, 212, 0.05); transform: translateY(-10px); }
+  /* crop / registration marks */
+  .crop{ position:fixed; width:22px; height:22px; z-index:50; pointer-events:none; opacity:0.55; }
+  .crop::before, .crop::after{ content:''; position:absolute; background:var(--copper); }
+  .crop::before{ width:100%; height:1px; top:50%; }
+  .crop::after{ width:1px; height:100%; left:50%; }
+  .crop-tl{ top:18px; left:18px; } .crop-tr{ top:18px; right:18px; }
+  .crop-bl{ bottom:18px; left:18px; } .crop-br{ bottom:18px; right:18px; }
 
-        /* Animation Reveal */
-        .reveal { opacity: 0; transform: translateY(30px); transition: 1s all ease; }
-        .reveal.active { opacity: 1; transform: translateY(0); }
+  /* cursor: drafting crosshair */
+  #cross-h, #cross-v{ position:fixed; z-index:9998; pointer-events:none; background:rgba(201,134,63,0.35); }
+  #cross-h{ height:1px; width:100vw; left:0; }
+  #cross-v{ width:1px; height:100vh; top:0; }
+  #coord{
+    position:fixed; z-index:9999; pointer-events:none;
+    font-size:10px; padding:2px 6px; color:var(--ink); background:var(--copper);
+    transform:translate(12px,12px);
+  }
+  @media (max-width: 768px){ #cross-h,#cross-v,#coord{ display:none; } }
 
-        .hero-text { font-size: clamp(3rem, 12vw, 10rem); line-height: 0.8; font-weight: 900; text-transform: uppercase; }
+  /* scale ruler progress */
+  #ruler{
+    position:fixed; top:0; left:0; width:100%; height:26px; z-index:60;
+    background:var(--blue-deep); border-bottom:1px solid var(--line);
+    display:flex; align-items:flex-end; overflow:hidden;
+  }
+  #ruler-fill{ height:100%; background:var(--copper-soft); position:absolute; left:0; top:0; width:0%; transition:width .1s linear; border-right:1px solid var(--copper); }
+  .tick{ position:absolute; bottom:0; width:1px; height:8px; background:var(--muted); }
+  .tick.major{ height:14px; background:var(--paper); }
 
-        /* Marquee Effect */
-        .marquee {
-            display: flex; overflow: hidden; user-select: none; gap: 2rem;
-            background: #06b6d4; color: #000; padding: 10px 0; font-weight: 900; text-transform: uppercase;
-        }
-        .marquee-content { flex-shrink: 0; display: flex; justify-content: space-around; min-width: 100%; gap: 2rem; animation: scroll 20s linear infinite; }
-        @keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-100%); } }
-    </style>
+  .reveal{ opacity:0; transform:translateY(24px); transition:opacity .8s ease, transform .8s ease; }
+  .reveal.active{ opacity:1; transform:translateY(0); }
+
+  .sheet-label{
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:11px; letter-spacing:0.18em; text-transform:uppercase; color:var(--copper);
+    border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+    padding:6px 0; margin-bottom:28px;
+  }
+  .sheet-label::before{ content:'✛'; color:var(--muted); }
+
+  .dim-line{ position:relative; }
+  .dim-line::before{
+    content:''; position:absolute; left:0; top:-14px; height:1px; width:100%;
+    background:repeating-linear-gradient(90deg, var(--muted) 0 6px, transparent 6px 10px);
+  }
+
+  .blueprint-card{
+    background:var(--blue-panel); border:1px solid var(--line); border-radius:2px;
+    position:relative; padding:2.5rem;
+    transition:border-color .4s ease, transform .4s ease, background .4s ease;
+  }
+  .blueprint-card::before, .blueprint-card::after,
+  .blueprint-card .bc-b1, .blueprint-card .bc-b2{
+    content:''; position:absolute; width:16px; height:16px; border-color:var(--muted); opacity:0.6;
+  }
+  .blueprint-card::before{ top:8px; left:8px; border-top:1px solid; border-left:1px solid; }
+  .blueprint-card::after{ top:8px; right:8px; border-top:1px solid; border-right:1px solid; }
+  .blueprint-card .bc-b1{ bottom:8px; left:8px; border-bottom:1px solid; border-left:1px solid; }
+  .blueprint-card .bc-b2{ bottom:8px; right:8px; border-bottom:1px solid; border-right:1px solid; }
+  .blueprint-card:hover{ border-color:var(--copper); transform:translateY(-6px); }
+  .blueprint-card:hover::before, .blueprint-card:hover::after,
+  .blueprint-card:hover .bc-b1, .blueprint-card:hover .bc-b2{ border-color:var(--copper); opacity:1; }
+
+  .btn{
+    display:inline-flex; align-items:center; gap:10px;
+    font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--ink); background:var(--copper); padding:12px 22px;
+    border:none; text-decoration:none; transition:background .3s ease, gap .3s ease;
+  }
+  .btn:hover{ gap:16px; background:#E0A458; }
+  .btn-ghost{
+    color:var(--paper); background:transparent; border:1px solid var(--line);
+  }
+  .btn-ghost:hover{ border-color:var(--copper); color:var(--copper); background:transparent; }
+
+  .measure-tape{
+    background:var(--blue-deep); border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+    padding:14px 0; overflow:hidden; white-space:nowrap;
+  }
+  .measure-tape .track{ display:inline-flex; animation:scroll-x 32s linear infinite; }
+  .measure-tape span{ font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.2em; color:var(--muted); padding:0 2rem; text-transform:uppercase; }
+  .measure-tape span.acc{ color:var(--copper); }
+  @keyframes scroll-x{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
+
+  .legend-row{ display:flex; align-items:center; gap:16px; padding:14px 0; border-bottom:1px solid var(--line-soft); }
+  .legend-bar{ flex:1; height:2px; background:var(--line); position:relative; }
+  .legend-bar i{ position:absolute; left:0; top:0; height:100%; background:var(--copper); display:block; }
+
+  a{ color:inherit; }
+  ::selection{ background:var(--copper); color:var(--ink); }
+</style>
 </head>
 <body>
 
-    <div id="cursor-dot"></div>
-    <div id="cursor-outline"></div>
+<div class="grid-bg"></div>
+<div class="crop crop-tl"></div><div class="crop crop-tr"></div>
+<div class="crop crop-bl"></div><div class="crop crop-br"></div>
+<div id="cross-h"></div><div id="cross-v"></div>
+<div id="coord" class="mono">X 000 · Y 000</div>
 
-    <nav class="fixed top-0 w-full z-50 p-6 flex justify-between items-center bg-black/40 backdrop-blur-xl border-b border-white/5">
-        <div class="text-xl font-black tracking-tighter italic">HYPERCODE</div>
-        <div class="flex gap-6 font-bold uppercase text-[10px] tracking-[0.2em]">
-            <a href="#work" class="hover:text-cyan-400">Projects</a>
-            <a href="#experience" class="hover:text-cyan-400">Skills</a>
-            <a href="#contact" class="hover:text-cyan-400">Contact</a>
-        </div>
-    </nav>
+<div id="ruler"><div id="ruler-fill"></div></div>
 
-    <section class="min-h-screen flex flex-col justify-center px-10 pt-32">
-        <div class="reveal active">
-            <h1 class="hero-text italic">
-                Beyond <br> <span class="text-cyan-400" style="-webkit-text-stroke: 1px #06b6d4; color: transparent;">Coding.</span>
-            </h1>
-            <p class="max-w-2xl text-2xl text-gray-400 font-light mt-8 leading-tight">
-                Ես պարզապես կայքեր չեմ սարքում։ Ես ստեղծում եմ բարձրակարգ թվային պրոդուկտներ՝ օգտագործելով <span class="text-white font-bold underline decoration-cyan-500">Node.js, React և MongoDB</span>:
-            </p>
-            <div class="mt-10 flex gap-10 items-center">
-                <div class="flex flex-col">
-                    <span class="text-4xl font-black">80+</span>
-                    <span class="text-[10px] uppercase tracking-widest text-gray-500">B2B Clients</span>
-                </div>
-                <div class="h-10 w-[1px] bg-white/20"></div>
-                <div class="flex flex-col">
-                    <span class="text-4xl font-black">2026</span>
-                    <span class="text-[10px] uppercase tracking-widest text-gray-500">Current Era</span>
-                </div>
-            </div>
-        </div>
-    </section>
+<nav class="fixed top-[26px] w-full z-40 px-6 md:px-12 py-5 flex justify-between items-center bg-[#0A0F14]/70 backdrop-blur-md border-b border-[var(--line)]">
+  <div class="mono text-xs tracking-[0.25em] flex items-center gap-2">
+    <span style="color:var(--copper)">✛</span> ARCH.DEV — SHEET INDEX
+  </div>
+  <div class="flex gap-8 mono text-[10px] uppercase tracking-[0.2em] text-[var(--muted)]">
+    <a href="#work" class="hover:text-[var(--copper)] transition-colors">01 Projects</a>
+    <a href="#stack" class="hover:text-[var(--copper)] transition-colors">02 Stack</a>
+    <a href="#process" class="hover:text-[var(--copper)] transition-colors">03 Process</a>
+    <a href="#contact" class="hover:text-[var(--copper)] transition-colors">04 Contact</a>
+  </div>
+</nav>
 
-    <div class="marquee my-10">
-        <div class="marquee-content italic">
-            <span>MERN STACK EXPERT</span> <span>•</span> <span>UI/UX MAXIMALIST</span> <span>•</span> <span>SCALABLE SYSTEMS</span> <span>•</span> <span>YEREVAN BASED</span> <span>•</span>
-            <span>MERN STACK EXPERT</span> <span>•</span> <span>UI/UX MAXIMALIST</span> <span>•</span> <span>SCALABLE SYSTEMS</span> <span>•</span> <span>YEREVAN BASED</span> <span>•</span>
-        </div>
+<!-- HERO / TITLE BLOCK -->
+<section class="min-h-screen flex flex-col justify-center px-6 md:px-12 pt-40 pb-20 relative z-10">
+  <div class="reveal active max-w-5xl">
+    <div class="sheet-label">Site Plan — Rev. 2026</div>
+    <h1 class="serif italic" style="font-size:clamp(2.6rem,8vw,6.2rem); line-height:0.98; font-weight:500;">
+      Ես նախագծում եմ<br>
+      <span style="color:var(--copper)">թվային տարածքներ,</span><br>
+      ոչ միայն կայքեր։
+    </h1>
+    <p class="max-w-xl mt-10 text-lg font-light" style="color:var(--muted)">
+      Ինչպես ճարտարապետը մտածում է հիմքից մինչև տանիք, ես կառուցում եմ ապրանքներ
+      <span class="mono text-[var(--paper)]">Node.js</span>,
+      <span class="mono text-[var(--paper)]">React</span> և
+      <span class="mono text-[var(--paper)]">MongoDB</span>
+      վրա՝ սկսած տվյալների ճարտարապետությունից մինչև վերջին փիքսելը։
+    </p>
+    <div class="flex gap-4 mt-12">
+      <a href="#work" class="btn">Դիտել նախագծերը →</a>
+      <a href="#contact" class="btn btn-ghost">Կապ հաստատել</a>
+    </div>
+  </div>
+
+  <!-- title block, bottom right, like real architectural drawings -->
+  <div class="reveal active mono text-[10px] absolute bottom-8 right-6 md:right-12 border border-[var(--line)]" style="min-width:260px;">
+    <div class="grid grid-cols-2">
+      <div class="p-3 border-r border-b border-[var(--line)] text-[var(--muted)]">DRAWN BY</div>
+      <div class="p-3 border-b border-[var(--line)]">A. MKHITARYAN</div>
+      <div class="p-3 border-r border-b border-[var(--line)] text-[var(--muted)]">LOCATION</div>
+      <div class="p-3 border-b border-[var(--line)]">YEREVAN, AM</div>
+      <div class="p-3 border-r border-b border-[var(--line)] text-[var(--muted)]">SCALE</div>
+      <div class="p-3 border-b border-[var(--line)]">1 : FULL STACK</div>
+      <div class="p-3 border-r text-[var(--muted)]">REV</div>
+      <div class="p-3">2026.07</div>
+    </div>
+  </div>
+</section>
+
+<div class="measure-tape">
+  <div class="track">
+    <span class="acc">MERN STACK</span><span>•</span><span>WEB ARCHITECTURE</span><span>•</span>
+    <span class="acc">B2B PLATFORMS</span><span>•</span><span>YEREVAN, ARMENIA</span><span>•</span>
+    <span class="acc">MERN STACK</span><span>•</span><span>WEB ARCHITECTURE</span><span>•</span>
+    <span class="acc">B2B PLATFORMS</span><span>•</span><span>YEREVAN, ARMENIA</span><span>•</span>
+  </div>
+</div>
+
+<!-- PROJECTS -->
+<section id="work" class="py-32 px-6 md:px-12 relative z-10">
+  <div class="reveal max-w-3xl mb-20">
+    <div class="sheet-label">Sheet 01 — Elevations</div>
+    <h2 class="serif italic" style="font-size:clamp(2rem,5vw,3.4rem); font-weight:500;">Ընտրված նախագծեր</h2>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+    <div class="md:col-span-2 blueprint-card reveal">
+      <div class="bc-b1"></div><div class="bc-b2"></div>
+      <div class="flex justify-between items-start mb-6 flex-wrap gap-4">
+        <div class="mono text-[10px] tracking-[0.2em] text-[var(--muted)]">SHEET 01 / 05 — MAIN PROJECT</div>
+        <span class="mono text-[10px] px-3 py-1 border border-[var(--copper)] text-[var(--copper)]">LIVE</span>
+      </div>
+      <h3 class="serif italic text-4xl md:text-5xl mb-6">Ari Tun</h3>
+      <p class="text-lg font-light mb-8 max-w-xl" style="color:var(--muted)">
+        Արագագործ և մոդեռն հարթակ սպասարկման ոլորտի ընկերության համար. օպտիմալացված SEO,
+        բարձր կատարողականություն և ինտուիտիվ UI/UX դիզայն։
+      </p>
+      <div class="flex flex-wrap gap-3 mb-8 mono text-[10px] uppercase tracking-wider">
+        <span class="border border-[var(--line)] px-3 py-1.5">Next.js</span>
+        <span class="border border-[var(--line)] px-3 py-1.5">Tailwind</span>
+        <span class="border border-[var(--line)] px-3 py-1.5">Framer Motion</span>
+        <span class="border border-[var(--line)] px-3 py-1.5">API Integration</span>
+      </div>
+      <a href="https://mkhitaryan-arm.github.io/ari-tun-prof/" target="_blank" class="btn">Բացել կայքը →</a>
     </div>
 
-    <section id="work" class="py-20 px-10">
-        <h2 class="text-5xl font-black uppercase mb-16 italic tracking-tighter">Featured Projects</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            
-            <div class="md:col-span-2 bento-card p-12 reveal border-cyan-500/40 group">
-                <div class="flex justify-between items-start mb-6">
-                    <h3 class="text-6xl font-black uppercase italic group-hover:text-cyan-400 transition-colors">Ari Tun</h3>
-                    <span class="bg-cyan-500 text-black px-4 py-1 text-xs font-bold rounded-full uppercase">Main Project</span>
-                </div>
-                <p class="text-gray-300 text-xl mb-10 max-w-xl leading-relaxed">
-                    Արագագործ և մոդեռն հարթակ սպասարկման ոլորտի ընկերության համար։ Օպտիմալացված SEO, բարձր արագություն և ինտուիտիվ UI/UX դիզայն։
-                </p>
-                <div class="flex flex-wrap gap-4 mb-8">
-                    <span class="text-xs font-bold border border-white/20 px-4 py-2 rounded-lg bg-white/5">NEXT.JS</span>
-                    <span class="text-xs font-bold border border-white/20 px-4 py-2 rounded-lg bg-white/5">TAILWIND</span>
-                    <span class="text-xs font-bold border border-white/20 px-4 py-2 rounded-lg bg-white/5">FRAMER MOTION</span>
-                    <span class="text-xs font-bold border border-white/20 px-4 py-2 rounded-lg bg-white/5">API INTEGRATION</span>
-                </div>
-                <a href="https://mkhitaryan-arm.github.io/ari-tun-prof/" class="inline-block bg-white text-black px-8 py-3 font-black uppercase italic hover:bg-cyan-500 transition-all">Launch Website</a>
-            </div>
+    <div class="blueprint-card reveal flex flex-col justify-between">
+      <div class="bc-b1"></div><div class="bc-b2"></div>
+      <div>
+        <div class="mono text-[10px] tracking-[0.2em] text-[var(--muted)] mb-4">SHEET 02 / 05</div>
+        <h3 class="serif italic text-3xl mb-4">Master Plus</h3>
+        <p class="font-light" style="color:var(--muted)">Վերանորոգման և ջրմուղագործության ծառայությունների հարթակ Երևանում։ Մասշտաբավորելի ճարտարապետություն։</p>
+      </div>
+      <a href="https://santex-yerevan.am/" target="_blank" class="btn mt-8">Բացել կայքը →</a>
+    </div>
 
-            <div class="bento-card p-12 reveal flex flex-col justify-between hover:bg-white hover:text-black group transition-all">
-                <div>
-                    <h3 class="text-4xl font-black uppercase mb-4 italic">Master Plus</h3>
-                    <p class="text-gray-400 group-hover:text-black/70">Professional renovation & plumbing services platform in Yerevan. Scalable architecture.</p>
-                </div>
-                <a href="https://santex-yerevan.am/" class="inline-block bg-white text-black px-8 py-3 font-black uppercase italic hover:bg-cyan-500 transition-all">Launch Website</a>
-            </div>
+    <div class="blueprint-card reveal">
+      <div class="bc-b1"></div><div class="bc-b2"></div>
+      <div class="mono text-[10px] tracking-[0.2em] text-[var(--copper)] mb-6">// LEGEND — CORE STACK</div>
+      <ul class="space-y-4 mono text-sm uppercase">
+        <li class="legend-row" style="border:none;padding:0;"><span>React.js</span><span class="legend-bar"><i style="width:95%"></i></span><span class="text-[var(--copper)]">95</span></li>
+        <li class="legend-row" style="border:none;padding:0;"><span>Node.js</span><span class="legend-bar"><i style="width:90%"></i></span><span class="text-[var(--copper)]">90</span></li>
+        <li class="legend-row" style="border:none;padding:0;"><span>MongoDB</span><span class="legend-bar"><i style="width:85%"></i></span><span class="text-[var(--copper)]">85</span></li>
+        <li class="legend-row" style="border:none;padding:0;"><span>Next.js</span><span class="legend-bar"><i style="width:92%"></i></span><span class="text-[var(--copper)]">92</span></li>
+      </ul>
+    </div>
 
-            <div class="bento-card p-8 reveal bg-gradient-to-br from-cyan-900/20 to-transparent">
-                <h4 class="font-black uppercase mb-6 text-cyan-400 tracking-widest text-sm underline">// Core Stack</h4>
-                <ul class="space-y-3 font-bold uppercase text-lg italic">
-                    <li class="flex justify-between"><span>React.js</span> <span class="text-cyan-500">95%</span></li>
-                    <li class="flex justify-between"><span>Node.js</span> <span class="text-cyan-500">90%</span></li>
-                    <li class="flex justify-between"><span>MongoDB</span> <span class="text-cyan-500">85%</span></li>
-                    <li class="flex justify-between"><span>Next.js</span> <span class="text-cyan-500">92%</span></li>
-                </ul>
-            </div>
+    <div class="md:col-span-2 blueprint-card reveal relative overflow-hidden">
+      <div class="bc-b1"></div><div class="bc-b2"></div>
+      <div class="absolute -right-6 -bottom-10 text-[10rem] font-black italic serif" style="color:var(--line-soft);">B2B</div>
+      <div class="mono text-[10px] tracking-[0.2em] text-[var(--muted)] mb-4">SHEET 03 / 05</div>
+      <h3 class="serif italic text-3xl md:text-4xl mb-4">FloraEx — ծաղկային շուկա</h3>
+      <p class="text-lg font-light max-w-lg mb-6" style="color:var(--muted)">
+        Կոմպլեքս B2B հարթակ 80+ ջերմոցատերերի համար՝ պահեստավորման ընդլայնված տրամաբանությամբ
+        և վաճառողների անհատական վահանակներով։
+      </p>
+      <div class="flex gap-2 items-center mono text-[10px] uppercase tracking-widest">
+        <span class="w-2 h-2 rounded-full" style="background:var(--copper);"></span> Active Deployment
+      </div>
+    </div>
 
-            <div class="md:col-span-2 bento-card p-12 reveal relative overflow-hidden group">
-                <div class="absolute -right-10 -bottom-10 text-[15rem] font-black text-white/5 italic">B2B</div>
-                <h3 class="text-4xl font-black uppercase mb-4 italic">Flower Marketplace</h3>
-                <p class="text-gray-400 text-lg max-w-lg mb-8">
-                    Complex B2B platform for 80+ greenhouse owners. Advanced inventory logic and private vendor dashboards.
-                </p>
-                <div class="flex gap-2">
-                    <div class="w-2 h-2 rounded-full bg-cyan-500 animate-ping"></div>
-                    <span class="text-xs uppercase font-bold tracking-widest">Active Deployment</span>
-                </div>
-            </div>
+    <div class="blueprint-card reveal">
+      <div class="bc-b1"></div><div class="bc-b2"></div>
+      <div class="mono text-[10px] tracking-[0.2em] text-[var(--muted)] mb-4">SHEET 04 / 05</div>
+      <h3 class="serif italic text-3xl mb-4">Munchy Burger</h3>
+      <p class="font-light" style="color:var(--muted)">Կինեմատոգրաֆիկ, սքրոլ-անիմացիայով պրոմո կայք Երևանի բուրգեր ռեստորանի համար՝ եռալեզու աջակցությամբ։</p>
+    </div>
 
-        </div>
-    </section>
+    <div class="blueprint-card reveal">
+      <div class="bc-b1"></div><div class="bc-b2"></div>
+      <div class="mono text-[10px] tracking-[0.2em] text-[var(--muted)] mb-4">SHEET 05 / 05</div>
+      <h3 class="serif italic text-3xl mb-4">Թվագրագիտություն 8-րդ դասարան</h3>
+      <p class="font-light" style="color:var(--muted)">Հայալեզու կրթական վեբ-հավելված՝ սեփական պահեստավորման շերտով, ուսուցչի վահանակով և առաջընթացի հետագծմամբ։</p>
+    </div>
 
-    <section id="experience" class="py-20 px-10 bg-[#080808] border-y border-white/5">
-        <div class="max-w-6xl mx-auto reveal">
-            <h2 class="text-5xl font-black uppercase mb-16 italic tracking-tighter text-cyan-500">My Expertise</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-20">
-                <div class="relative pl-10 border-l-2 border-cyan-500">
-                    <h4 class="text-3xl font-black uppercase mb-4 italic">Frontend Architecture</h4>
-                    <p class="text-gray-400 leading-relaxed text-xl">
-                        Ստեղծում եմ դինամիկ և "pixel-perfect" ինտերֆեյսներ React և Next.js-ի միջոցով։ Յուրաքանչյուր անիմացիա մշակվում է այնպես, որ ապահովի լավագույն UI/UX փորձը։
-                    </p>
-                </div>
-                <div class="relative pl-10 border-l-2 border-white/10">
-                    <h4 class="text-3xl font-black uppercase mb-4 italic">Backend Systems</h4>
-                    <p class="text-gray-400 leading-relaxed text-xl">
-                        Node.js-ով և Express-ով կառուցում եմ հզոր API-ներ և տվյալների բազաներ (MongoDB), որոնք պատրաստ են մեծ ծանրաբեռնվածության և ապահովում են տվյալների անվտանգությունը։
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
+  </div>
+</section>
 
-    <section id="contact" class="pt-40 pb-20 px-10 text-center bg-white text-black rounded-t-[60px]">
-        <div class="reveal">
-            <h2 class="text-7xl md:text-[14vw] font-black uppercase leading-[0.75] mb-16 tracking-tighter italic">Let's <br> Build <br> It.</h2>
-            
-            <div class="flex flex-wrap justify-center gap-10 md:gap-24 mb-24">
-                <a href="https://t.me/@Artur_M_Yan" target="_blank" class="text-3xl font-black uppercase border-b-8 border-black hover:text-cyan-600 hover:border-cyan-600 transition-all transform hover:skew-x-12">Telegram</a>
-                <a href="https://wa.me/37493090658" target="_blank" class="text-3xl font-black uppercase border-b-8 border-black hover:text-green-600 hover:border-green-600 transition-all transform hover:skew-x-12">WhatsApp</a>
-                <a href="https://github.com/Mkhitaryan-Arm" target="_blank" class="text-3xl font-black uppercase border-b-8 border-black hover:text-gray-600 hover:border-gray-600 transition-all transform hover:skew-x-12">GitHub</a>
-            </div>
+<!-- PROCESS -->
+<section id="process" class="py-32 px-6 md:px-12 relative z-10" style="background:var(--blue-deep); border-top:1px solid var(--line); border-bottom:1px solid var(--line);">
+  <div class="max-w-6xl mx-auto reveal">
+    <div class="sheet-label">Sheet 02 — Sections</div>
+    <h2 class="serif italic mb-16" style="font-size:clamp(2rem,5vw,3.4rem); font-weight:500; color:var(--copper);">Աշխատանքի սկզբունքները</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-16">
+      <div class="dim-line pt-6">
+        <div class="mono text-[10px] text-[var(--muted)] mb-3">01 — FRONTEND ARCHITECTURE</div>
+        <p class="serif text-2xl italic mb-4">Pixel-ուշադիր ինտերֆեյսներ</p>
+        <p class="font-light text-lg" style="color:var(--muted)">
+          Ստեղծում եմ դինամիկ և ճշգրիտ ինտերֆեյսներ React և Next.js-ի միջոցով,
+          որտեղ յուրաքանչյուր անիմացիա ծառայում է UX-ին, ոչ թե ինքն իրեն։
+        </p>
+      </div>
+      <div class="dim-line pt-6">
+        <div class="mono text-[10px] text-[var(--muted)] mb-3">02 — BACKEND SYSTEMS</div>
+        <p class="serif text-2xl italic mb-4">Հիմքեր, որոնք դիմանում են ծանրաբեռնվածությանը</p>
+        <p class="font-light text-lg" style="color:var(--muted)">
+          Node.js-ով և Express-ով կառուցում եմ API-ներ և տվյալների բազաներ (MongoDB),
+          պատրաստված մեծ ծանրաբեռնվածության և տվյալների անվտանգության համար։
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
 
-            <div class="flex flex-col md:flex-row justify-between items-center border-t border-black/10 pt-16 text-xs font-black uppercase tracking-[0.4em] opacity-80">
-                <p>Armenia // Yerevan</p>
-                <a href="mailto:hypercode26@gmail.com" class="text-2xl font-black italic underline normal-case tracking-normal hover:text-cyan-600 transition-colors">hypercode26@gmail.com</a>
-                <p>© 2026 Web Architect</p>
-            </div>
-        </div>
-    </section>
+<!-- CONTACT / REVISION BLOCK -->
+<section id="contact" class="pt-32 pb-16 px-6 md:px-12 relative z-10" style="background:var(--paper); color:var(--ink); border-radius:36px 36px 0 0;">
+  <div class="reveal max-w-6xl mx-auto">
+    <div class="mono text-[10px] tracking-[0.2em] uppercase mb-6" style="color:var(--copper)">Sheet 04 — Revision Block</div>
+    <h2 class="serif italic leading-[0.95] mb-16" style="font-size:clamp(2.6rem,10vw,7.5rem); font-weight:600;">
+      Կառուցենք<br>ձեր հաջորդ<br>նախագիծը։
+    </h2>
 
-    <script>
-        const dot = document.getElementById('cursor-dot');
-        const outline = document.getElementById('cursor-outline');
+    <div class="flex flex-wrap gap-6 md:gap-10 mb-20">
+      <a href="https://t.me/@Artur_M_Yan" target="_blank" class="mono text-lg md:text-xl uppercase border-b-2 pb-1 hover:opacity-60 transition-opacity" style="border-color:var(--ink)">Telegram</a>
+      <a href="https://wa.me/37493090658" target="_blank" class="mono text-lg md:text-xl uppercase border-b-2 pb-1 hover:opacity-60 transition-opacity" style="border-color:var(--ink)">WhatsApp</a>
+      <a href="https://github.com/Mkhitaryan-Arm" target="_blank" class="mono text-lg md:text-xl uppercase border-b-2 pb-1 hover:opacity-60 transition-opacity" style="border-color:var(--ink)">GitHub</a>
+      <a href="mailto:hypercode26@gmail.com" class="mono text-lg md:text-xl uppercase border-b-2 pb-1 hover:opacity-60 transition-opacity" style="border-color:var(--ink)">Email</a>
+    </div>
 
-        window.addEventListener('mousemove', (e) => {
-            const posX = e.clientX;
-            const posY = e.clientY;
-            dot.style.transform = `translate(${posX - 4}px, ${posY - 4}px)`;
-            outline.animate({ transform: `translate(${posX - 20}px, ${posY - 20}px)` }, { duration: 400, fill: "forwards" });
-        });
+    <div class="grid grid-cols-2 md:grid-cols-4 border-t" style="border-color:rgba(10,15,20,0.15);">
+      <div class="p-5 border-r" style="border-color:rgba(10,15,20,0.15);">
+        <div class="mono text-[9px] uppercase tracking-widest opacity-50 mb-1">Location</div>
+        <div class="mono text-sm">Yerevan, AM</div>
+      </div>
+      <div class="p-5 border-r" style="border-color:rgba(10,15,20,0.15);">
+        <div class="mono text-[9px] uppercase tracking-widest opacity-50 mb-1">Stack</div>
+        <div class="mono text-sm">MERN</div>
+      </div>
+      <div class="p-5 border-r" style="border-color:rgba(10,15,20,0.15);">
+        <div class="mono text-[9px] uppercase tracking-widest opacity-50 mb-1">Clients</div>
+        <div class="mono text-sm">80+</div>
+      </div>
+      <div class="p-5">
+        <div class="mono text-[9px] uppercase tracking-widest opacity-50 mb-1">Revision</div>
+        <div class="mono text-sm">2026 © A. Mkhitaryan</div>
+      </div>
+    </div>
+  </div>
+</section>
 
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('active'); });
-        }, { threshold: 0.1 });
-        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+<script>
+  // ruler ticks
+  const rulerFill = document.getElementById('ruler-fill');
+  const ruler = document.getElementById('ruler');
+  for(let i=0;i<60;i++){
+    const t = document.createElement('div');
+    t.className = 'tick' + (i%5===0 ? ' major' : '');
+    t.style.left = (i * (100/60)) + '%';
+    ruler.appendChild(t);
+  }
+  window.addEventListener('scroll', () => {
+    const h = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = h > 0 ? (window.scrollY / h) * 100 : 0;
+    rulerFill.style.width = pct + '%';
+  });
 
-        document.querySelectorAll('a, button, .bento-card').forEach(item => {
-            item.addEventListener('mouseenter', () => {
-                outline.style.transform = 'scale(3)';
-                outline.style.backgroundColor = 'rgba(6, 182, 212, 0.1)';
-                outline.style.borderWidth = '0px';
-            });
-            item.addEventListener('mouseleave', () => {
-                outline.style.transform = 'scale(1)';
-                outline.style.backgroundColor = 'transparent';
-                outline.style.borderWidth = '1px';
-            });
-        });
-    </script>
+  // reveal on scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('active'); });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // drafting crosshair cursor with coordinate readout
+  const ch = document.getElementById('cross-h');
+  const cv = document.getElementById('cross-v');
+  const coord = document.getElementById('coord');
+  window.addEventListener('mousemove', (e) => {
+    ch.style.top = e.clientY + 'px';
+    cv.style.left = e.clientX + 'px';
+    coord.style.top = e.clientY + 'px';
+    coord.style.left = e.clientX + 'px';
+    coord.textContent = `X ${String(e.clientX).padStart(3,'0')} · Y ${String(e.clientY).padStart(3,'0')}`;
+  });
+</script>
 </body>
 </html>
